@@ -196,3 +196,6 @@ Temporary Items
 /dist
 /easy_install.spec
 /easy_install.exe
+
+# MATLAB directories
+/R*[ab]
