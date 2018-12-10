@@ -10,3 +10,14 @@ build_script:
   - pyinstaller .\easy_install.py --onefile
 artifacts:
   - path: dist\*
+deploy:
+  - provider: GitHub
+    tag: $(APPVEYOR_REPO_TAG_NAME)
+    release: MATLAB Easy Installer $(APPVEYOR_REPO_TAG_NAME)
+    auth_token:
+      secure: UVmFzSqOXDyUnsL8Lx6uSNINMMj454CSH8DapDa/me2/rpyf3swWHu39m4EpYXcj
+    artifact: 'dist\easy_install.exe,easy_install.py'
+    prerelease: false
+    draft: false
+    on:
+      APPVEYOR_REPO_TAG: true
