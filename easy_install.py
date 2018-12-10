@@ -26,8 +26,6 @@ import subprocess
 import sys
 import typing
 
-import requests
-
 # コードのフォーマットにはyapfを使用
 
 
@@ -50,19 +48,24 @@ class MATLABInstaller:
     FILE_INSTALL_KEY_REGEX = re.compile(r"^\d+-\d+-\d+-\d+$")
 
     @staticmethod
-    def find_file_in_directory(file_name: str,
-                               root_path: typing.Optional[str]=None
-                               ) -> typing.Optional[str]:
+    def find_file_in_directory(
+        file_name: str, root_path: typing.Optional[str] = None
+    ) -> typing.Optional[str]:
         """
         指定されたディレクトリ内で指定された名前のファイルを探して返す
 
         ない場合はNoneを返す
         """
 
-        root_path_ = os.getcwd(
-        ) if root_path is None else root_path  # not None
-        return os.path.join(root_path_, file_name) if os.path.isdir(
-            root_path_) and file_name in os.listdir(root_path_) else None
+        root_path_ = (
+            os.getcwd() if root_path is None else root_path
+        )  # not None
+        return (
+            os.path.join(root_path_, file_name)
+            if os.path.isdir(root_path_)
+            and file_name in os.listdir(root_path_)
+            else None
+        )
 
     @staticmethod
     def matlab_version_to_key(version: str):
@@ -76,11 +79,16 @@ class MATLABInstaller:
         """
 
         matlab_bin_default_path = (
-            "C:\\Program Files\\MATLAB\\{}\\bin\\matlab.exe" if os.name == "nt"
-            else "/usr/local/MATLAB/{}/bin/matlab").format(version)
+            "C:\\Program Files\\MATLAB\\{}\\bin\\matlab.exe"
+            if os.name == "nt"
+            else "/usr/local/MATLAB/{}/bin/matlab"
+        ).format(version)
 
-        return os.path.exists(matlab_bin_default_path if self.install_path is
-                              None else self.install_path)
+        return os.path.exists(
+            matlab_bin_default_path
+            if self.install_path is None
+            else self.install_path
+        )
 
     def find_file_path(self, file_name: str) -> str:
         """
@@ -96,25 +104,35 @@ class MATLABInstaller:
 
         directory_candidates = [
             current_dir,
-            os.path.join(current_dir, self.matlab_version)
+            os.path.join(current_dir, self.matlab_version),
         ]
         if this_script_dir != "":
             directory_candidates += [
                 this_script_dir,
-                os.path.join(this_script_dir, self.matlab_version)
+                os.path.join(this_script_dir, self.matlab_version),
             ]
-        result_file_paths = list(filter(lambda file: file is not None, map(
-            lambda file: MATLABInstaller.find_file_in_directory(file_name, file),
-            directory_candidates)))
+        result_file_paths = list(
+            filter(
+                lambda file: file is not None,
+                map(
+                    lambda file: MATLABInstaller.find_file_in_directory(
+                        file_name, file
+                    ),
+                    directory_candidates,
+                ),
+            )
+        )
         if not result_file_paths:
             raise FileNotFoundError(
-                "No files named {} are found".format(file_name))
+                "No files named {} are found".format(file_name)
+            )
         return result_file_paths[0]
 
     @staticmethod
     def find_latest_matlab_version() -> str:
         matlab_versions = [
-            dir_name for dir_name in os.listdir()
+            dir_name
+            for dir_name in os.listdir()
             if os.path.isdir(dir_name)
             and MATLABInstaller.MATLAB_VERSION_REGEX.match(dir_name)
         ]
@@ -129,11 +147,15 @@ class MATLABInstaller:
 
         if args.matlab_version:
             if not MATLABInstaller.MATLAB_VERSION_REGEX(args.matlab_version):
-                raise ValueError(args.matlab_version +
-                                 " is not a valid MATLAB version.")
+                raise ValueError(
+                    args.matlab_version + " is not a valid MATLAB version."
+                )
             if not os.path.isdir(args.matlab_version):
-                raise NotADirectoryError("There is no directory named {}.".
-                                         format(args.matlab_version))
+                raise NotADirectoryError(
+                    "There is no directory named {}.".format(
+                        args.matlab_version
+                    )
+                )
             self.matlab_version = args.matlab_version
         else:
             self.matlab_version = MATLABInstaller.find_latest_matlab_version()
@@ -142,9 +164,16 @@ class MATLABInstaller:
         self.install_path = args.to
 
         "インストール先の実際のパス"
-        self.install_real_path = args.to if args.to is not None else os.path.join(
-            "/usr/local/MATLAB" if os.name == "posix" else
-            "C:\\Program Files\\MATLAB", self.matlab_version)
+        self.install_real_path = (
+            args.to
+            if args.to is not None
+            else os.path.join(
+                "/usr/local/MATLAB"
+                if os.name == "posix"
+                else "C:\\Program Files\\MATLAB",
+                self.matlab_version,
+            )
+        )
 
         "インストーラをGUIで起動するか"
         self.batch = args.batch
@@ -171,10 +200,12 @@ class MATLABInstaller:
             (r"C:\\path\\to\\matlab\\R2017a\\setup.exe", )
             ("sudo", "/path/to/matlab/R2017a/install")
         """
-        installer_path = self.find_file_path(
-            MATLABInstaller.INSTALLER_NAME)
-        return (installer_path, ) if os.name == "nt" or os.getuid() == 0 else (
-            "sudo", installer_path)
+        installer_path = self.find_file_path(MATLABInstaller.INSTALLER_NAME)
+        return (
+            (installer_path,)
+            if os.name == "nt" or os.getuid() == 0
+            else ("sudo", installer_path)
+        )
 
     @staticmethod
     def get_file_install_key(path: str) -> str:
@@ -183,7 +214,11 @@ class MATLABInstaller:
         if MATLABInstaller.FILE_INSTALL_KEY_REGEX.match(key):
             return key
         else:
-            raise RuntimeError("The file install key {} in {} is not a valid one.".format(key, path))
+            raise RuntimeError(
+                "The file install key {} in {} is not a valid one.".format(
+                    key, path
+                )
+            )
 
     def add_options(self) -> None:
         """
@@ -200,9 +235,14 @@ class MATLABInstaller:
                 self.options["automatedModeTimeout"] = 5000
             else:
                 self.options["mode"] = "interactive"
-        self.options["fileInstallationKey"] = MATLABInstaller.get_file_install_key(self.find_file_path(MATLABInstaller.FILE_INSTALL_KEY_FILE))
+        self.options[
+            "fileInstallationKey"
+        ] = MATLABInstaller.get_file_install_key(
+            self.find_file_path(MATLABInstaller.FILE_INSTALL_KEY_FILE)
+        )
         self.options["licensePath"] = self.find_file_path(
-            MATLABInstaller.LICENSE_FILE_NAME)
+            MATLABInstaller.LICENSE_FILE_NAME
+        )
         if self.install_path is not None:
             self.options["destinationFolder"] = self.install_path
 
@@ -220,20 +260,26 @@ class MATLABInstaller:
                 if not os.path.islink(matlab_link):
                     print(
                         matlab_link + " is not a symbolic link",
-                        file=sys.stderr)
+                        file=sys.stderr,
+                    )
                     return
                 if os.readlink(matlab_link) != matlab_bin:
-                    print(matlab_link +
-                          "is linked to another version of MATLAB")
+                    print(
+                        matlab_link + "is linked to another version of MATLAB"
+                    )
                     os.remove(matlab_link)
                 else:
                     print(matlab_link + "has already been created")
                     return
             subprocess.run(("sudo", "rm", "-f", matlab_link), check=True)
-            subprocess.run(("sudo", "ln", "-s", matlab_bin, matlab_link), check=True)
+            subprocess.run(
+                ("sudo", "ln", "-s", matlab_bin, matlab_link), check=True
+            )
         else:
-            print("Making a symbolic link to MATLAB in /usr/local/bin"
-                  " is only supported for POSIX OSes.")
+            print(
+                "Making a symbolic link to MATLAB in /usr/local/bin"
+                " is only supported for POSIX OSes."
+            )
 
     def make_desktop_shortcut(self) -> None:
         """
@@ -260,11 +306,14 @@ class MATLABInstaller:
         MATLABインストーラを実行する
         """
 
-        if not self.reinstall and self.check_already_installed(self.matlab_version):
+        if not self.reinstall and self.check_already_installed(
+            self.matlab_version
+        ):
             print("MATLAB has already been installed.")
         else:
-            subprocess.run(self.get_installer_cmd() +
-                           self.get_options_list_tuple())
+            subprocess.run(
+                self.get_installer_cmd() + self.get_options_list_tuple()
+            )
 
     def get_options_list_tuple(self) -> typing.Tuple[str, ...]:
         """
@@ -272,27 +321,42 @@ class MATLABInstaller:
 
         例: {"agreeToLicense": "yes", "mode": "silent"} → ("-agreeToLicense", "yes", "-mode", "silent")
         """
-        return functools.reduce(operator.add,
-                                (("-{}".format(key), str(val))
-                                 for key, val in self.options.items()), ())
+        return functools.reduce(
+            operator.add,
+            (
+                ("-{}".format(key), str(val))
+                for key, val in self.options.items()
+            ),
+            (),
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--to", "-t", help="The path where MATLAB is installed", default=None)
+        "--to", "-t", help="The path where MATLAB is installed", default=None
+    )
     parser.add_argument(
-        "--batch", "-b", help="Run the installer without GUI", action="store_true")
-    parser.add_argument("--automate", "-a", help="Automate GUI wizard", action="store_true")
+        "--batch",
+        "-b",
+        help="Run the installer without GUI",
+        action="store_true",
+    )
     parser.add_argument(
-        "--reinstall", "-r", help="Reinstall MATLAB", action="store_true")
+        "--automate", "-a", help="Automate GUI wizard", action="store_true"
+    )
+    parser.add_argument(
+        "--reinstall", "-r", help="Reinstall MATLAB", action="store_true"
+    )
     parser.add_argument(
         "--makelink",
         "-l",
         help="Make a symbolic link (for POSIX)",
-        action="store_true")
+        action="store_true",
+    )
     parser.add_argument(
-        "--matlab-version", "-m", help="MATLAB version to install")
+        "--matlab-version", "-m", help="MATLAB version to install"
+    )
     # parser.add_argument(
     #     "--makedesktop",
     #     "-m",
