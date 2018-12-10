@@ -357,6 +357,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--matlab-version", "-m", help="MATLAB version to install"
     )
+    parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version="MATLAB Easy Installer 1.0",
+        help="Show the version of this program",
+    )
     # parser.add_argument(
     #     "--makedesktop",
     #     "-m",
